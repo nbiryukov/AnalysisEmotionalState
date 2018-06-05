@@ -3,8 +3,10 @@ using Accord.Neuro.Learning;
 using GaitLibrary;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,13 +16,22 @@ namespace AnalysisEmotionalState
     {
         private const int COUNT_JOINTS = 4200;
         private ActivationNetwork network;
+        private BackPropagationLearning teacher;
         private Gait recognizableGait;
         private List<Gait> dataset;
+
+        private int countLearn;
 
         public Model()
         {
             this.dataset = new List<Gait>();
-            this.network = new ActivationNetwork(new SigmoidFunction(), COUNT_JOINTS, 14, 1);
+            this.network = new ActivationNetwork(new SigmoidFunction(), COUNT_JOINTS, 1);
+            this.teacher = new BackPropagationLearning(network);
+        }
+
+        public int CountLearn()
+        {
+            return this.countLearn;
         }
 
         public void SetRecognizableGait(Gait gait)
@@ -28,12 +39,19 @@ namespace AnalysisEmotionalState
             this.recognizableGait = gait;
         }
 
+        public void SetNetwork(ActivationNetwork network)
+        {
+            this.network = network;
+            this.teacher = new BackPropagationLearning(network);
+        }
+
+        public ActivationNetwork GetNetwork()
+        {
+            return this.network;
+        }
+
         public int RecognizeEmotion()
         {
-            if (this.recognizableGait == null)
-            {
-                throw new Exception("Выберите файл походки для распознавания");
-            }
             // преобразовать матрицу во входной вектор
             double[] input = FromMatrixToVector(recognizableGait.GetJoints());
             // вычислить выходной вектор сети
@@ -49,13 +67,19 @@ namespace AnalysisEmotionalState
             }
         }
 
-        public void AddGaitToDataset(Gait gait)
+        public void AddDataset(List<Gait> gaits)
         {
-            this.dataset.Add(gait);
+            this.dataset = gaits;
+        }
+
+        public void ClearDataset()
+        {
+            this.dataset.Clear();
         }
 
         public void Train(double learningRate, int countEpoch)
         {
+            countLearn = 0;
             // подготавливаем учебные данные
             double[][] input = new double[dataset.Count][];
             double[][] output = new double[dataset.Count][];
@@ -67,36 +91,48 @@ namespace AnalysisEmotionalState
                 output[i] = new double[1];
                 if (g.GetType() == 1)
                 {
-                    output[i][0] = 0.65;
+                    output[i][0] = 0.8;
                 }
                 else
                 {
-                    output[i][0] = 0.35;
+                    output[i][0] = 0.2;
                 }
             }
 
-            // создаем учителя
-            BackPropagationLearning teacher = new BackPropagationLearning(network);
+            this.teacher = new BackPropagationLearning(network);
             teacher.LearningRate = learningRate;
 
             //обучаем
+            double[] errors = new double[countEpoch];
             FileStream fstream = null;
             StreamWriter sw = null;
             try
             {
-                fstream = new FileStream("C:\\Users\\Nikita\\Desktop\\error.txt", FileMode.Create);
-                sw = new StreamWriter(fstream);
                 for (int i = 0; i < countEpoch; i++)
                 {
-                    double error = teacher.RunEpoch(input, output) / dataset.Count;
-                    sw.WriteLine(error + ", out neuron:" + network.Output[0]);
-
+                    errors[i] = teacher.RunEpoch(input, output) / dataset.Count;
+                    ++countLearn;
                 }
+
+                String path = "error_";
+                path += System.DateTime.Now.ToString() + ".txt";
+                path = path.Replace(" ", "_");
+                path = path.Replace(":", ".");
+                fstream = new FileStream(path, FileMode.Create);
+                sw = new StreamWriter(fstream);
+                for (int i = 0; i < errors.Length; i++)
+                {
+                    sw.WriteLine("epoch: " + (i + 1) + ", error: " + errors[i]);
+                }
+
             }
             finally
             {
-                sw.Close();
-                fstream.Close();
+                if (sw != null && fstream != null)
+                {
+                    sw.Close();
+                    fstream.Close();
+                }
             }
         }
 

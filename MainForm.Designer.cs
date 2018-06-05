@@ -28,18 +28,23 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.LoadGait = new System.Windows.Forms.Button();
             this.RecognizeEmotion = new System.Windows.Forms.Button();
             this.recognitionUnit = new System.Windows.Forms.GroupBox();
             this.trainingUnit = new System.Windows.Forms.GroupBox();
+            this.ProgressBar = new System.Windows.Forms.ProgressBar();
+            this.CreateNetwork = new System.Windows.Forms.Button();
+            this.LoadNetwork = new System.Windows.Forms.Button();
+            this.SaveNetwork = new System.Windows.Forms.Button();
             this.Train = new System.Windows.Forms.Button();
             this.LoadDataset = new System.Windows.Forms.Button();
             this.countEpochLabel = new System.Windows.Forms.Label();
             this.CountEpoch = new System.Windows.Forms.NumericUpDown();
             this.learningRateLabel = new System.Windows.Forms.Label();
             this.LearningRate = new System.Windows.Forms.NumericUpDown();
-            this.SaveNetwork = new System.Windows.Forms.Button();
-            this.LoadNetwork = new System.Windows.Forms.Button();
+            this.TimerBar = new System.Windows.Forms.Timer(this.components);
+            this.TimerButton = new System.Windows.Forms.Timer(this.components);
             this.recognitionUnit.SuspendLayout();
             this.trainingUnit.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CountEpoch)).BeginInit();
@@ -58,7 +63,7 @@
             // 
             // RecognizeEmotion
             // 
-            this.RecognizeEmotion.Location = new System.Drawing.Point(32, 91);
+            this.RecognizeEmotion.Location = new System.Drawing.Point(32, 113);
             this.RecognizeEmotion.Name = "RecognizeEmotion";
             this.RecognizeEmotion.Size = new System.Drawing.Size(157, 31);
             this.RecognizeEmotion.TabIndex = 1;
@@ -72,13 +77,15 @@
             this.recognitionUnit.Controls.Add(this.RecognizeEmotion);
             this.recognitionUnit.Location = new System.Drawing.Point(12, 12);
             this.recognitionUnit.Name = "recognitionUnit";
-            this.recognitionUnit.Size = new System.Drawing.Size(231, 140);
+            this.recognitionUnit.Size = new System.Drawing.Size(231, 175);
             this.recognitionUnit.TabIndex = 2;
             this.recognitionUnit.TabStop = false;
             this.recognitionUnit.Text = "Распознавание";
             // 
             // trainingUnit
             // 
+            this.trainingUnit.Controls.Add(this.ProgressBar);
+            this.trainingUnit.Controls.Add(this.CreateNetwork);
             this.trainingUnit.Controls.Add(this.LoadNetwork);
             this.trainingUnit.Controls.Add(this.SaveNetwork);
             this.trainingUnit.Controls.Add(this.Train);
@@ -87,18 +94,56 @@
             this.trainingUnit.Controls.Add(this.CountEpoch);
             this.trainingUnit.Controls.Add(this.learningRateLabel);
             this.trainingUnit.Controls.Add(this.LearningRate);
-            this.trainingUnit.Location = new System.Drawing.Point(298, 12);
+            this.trainingUnit.Location = new System.Drawing.Point(249, 12);
             this.trainingUnit.Name = "trainingUnit";
-            this.trainingUnit.Size = new System.Drawing.Size(309, 140);
+            this.trainingUnit.Size = new System.Drawing.Size(358, 175);
             this.trainingUnit.TabIndex = 3;
             this.trainingUnit.TabStop = false;
             this.trainingUnit.Text = "Обучение";
             // 
+            // ProgressBar
+            // 
+            this.ProgressBar.Location = new System.Drawing.Point(9, 153);
+            this.ProgressBar.Name = "ProgressBar";
+            this.ProgressBar.Size = new System.Drawing.Size(343, 12);
+            this.ProgressBar.Step = 1;
+            this.ProgressBar.TabIndex = 10;
+            // 
+            // CreateNetwork
+            // 
+            this.CreateNetwork.Location = new System.Drawing.Point(204, 82);
+            this.CreateNetwork.Name = "CreateNetwork";
+            this.CreateNetwork.Size = new System.Drawing.Size(116, 23);
+            this.CreateNetwork.TabIndex = 9;
+            this.CreateNetwork.Text = "Создать";
+            this.CreateNetwork.UseVisualStyleBackColor = true;
+            this.CreateNetwork.Click += new System.EventHandler(this.Create_Click);
+            // 
+            // LoadNetwork
+            // 
+            this.LoadNetwork.Location = new System.Drawing.Point(204, 51);
+            this.LoadNetwork.Name = "LoadNetwork";
+            this.LoadNetwork.Size = new System.Drawing.Size(116, 23);
+            this.LoadNetwork.TabIndex = 7;
+            this.LoadNetwork.Text = "Загрузить сеть";
+            this.LoadNetwork.UseVisualStyleBackColor = true;
+            this.LoadNetwork.Click += new System.EventHandler(this.LoadNetwork_Click);
+            // 
+            // SaveNetwork
+            // 
+            this.SaveNetwork.Location = new System.Drawing.Point(204, 19);
+            this.SaveNetwork.Name = "SaveNetwork";
+            this.SaveNetwork.Size = new System.Drawing.Size(116, 23);
+            this.SaveNetwork.TabIndex = 6;
+            this.SaveNetwork.Text = "Сохранить сеть";
+            this.SaveNetwork.UseVisualStyleBackColor = true;
+            this.SaveNetwork.Click += new System.EventHandler(this.SaveNetwork_Click);
+            // 
             // Train
             // 
-            this.Train.Location = new System.Drawing.Point(194, 58);
+            this.Train.Location = new System.Drawing.Point(189, 117);
             this.Train.Name = "Train";
-            this.Train.Size = new System.Drawing.Size(109, 24);
+            this.Train.Size = new System.Drawing.Size(111, 23);
             this.Train.TabIndex = 5;
             this.Train.Text = "Обучить";
             this.Train.UseVisualStyleBackColor = true;
@@ -106,9 +151,9 @@
             // 
             // LoadDataset
             // 
-            this.LoadDataset.Location = new System.Drawing.Point(194, 26);
+            this.LoadDataset.Location = new System.Drawing.Point(54, 117);
             this.LoadDataset.Name = "LoadDataset";
-            this.LoadDataset.Size = new System.Drawing.Size(109, 24);
+            this.LoadDataset.Size = new System.Drawing.Size(111, 23);
             this.LoadDataset.TabIndex = 4;
             this.LoadDataset.Text = "Загрузить данные";
             this.LoadDataset.UseVisualStyleBackColor = true;
@@ -127,15 +172,15 @@
             // 
             this.CountEpoch.Location = new System.Drawing.Point(102, 62);
             this.CountEpoch.Maximum = new decimal(new int[] {
-            100000,
+            10000000,
             0,
             0,
             0});
             this.CountEpoch.Minimum = new decimal(new int[] {
-            10,
+            1000000,
             0,
             0,
-            0});
+            -2147483648});
             this.CountEpoch.Name = "CountEpoch";
             this.CountEpoch.Size = new System.Drawing.Size(57, 20);
             this.CountEpoch.TabIndex = 2;
@@ -164,10 +209,15 @@
             131072});
             this.LearningRate.Location = new System.Drawing.Point(116, 26);
             this.LearningRate.Maximum = new decimal(new int[] {
-            1,
+            100000,
             0,
             0,
             0});
+            this.LearningRate.Minimum = new decimal(new int[] {
+            100000,
+            0,
+            0,
+            -2147483648});
             this.LearningRate.Name = "LearningRate";
             this.LearningRate.Size = new System.Drawing.Size(43, 20);
             this.LearningRate.TabIndex = 0;
@@ -177,38 +227,30 @@
             0,
             65536});
             // 
-            // SaveNetwork
+            // TimerBar
             // 
-            this.SaveNetwork.Location = new System.Drawing.Point(22, 98);
-            this.SaveNetwork.Name = "SaveNetwork";
-            this.SaveNetwork.Size = new System.Drawing.Size(109, 24);
-            this.SaveNetwork.TabIndex = 6;
-            this.SaveNetwork.Text = "Сохранить сеть";
-            this.SaveNetwork.UseVisualStyleBackColor = true;
-            this.SaveNetwork.Click += new System.EventHandler(this.SaveNetwork_Click);
+            this.TimerBar.Interval = 3;
+            this.TimerBar.Tick += new System.EventHandler(this.bar);
             // 
-            // LoadNetwork
+            // TimerButton
             // 
-            this.LoadNetwork.Location = new System.Drawing.Point(194, 98);
-            this.LoadNetwork.Name = "LoadNetwork";
-            this.LoadNetwork.Size = new System.Drawing.Size(109, 24);
-            this.LoadNetwork.TabIndex = 7;
-            this.LoadNetwork.Text = "Загрузить сеть";
-            this.LoadNetwork.UseVisualStyleBackColor = true;
-            this.LoadNetwork.Click += new System.EventHandler(this.LoadNetwork_Click);
+            this.TimerButton.Tick += new System.EventHandler(this.timerButton);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(619, 271);
+            this.ClientSize = new System.Drawing.Size(619, 199);
             this.Controls.Add(this.trainingUnit);
             this.Controls.Add(this.recognitionUnit);
             this.MaximizeBox = false;
+            this.MaximumSize = new System.Drawing.Size(635, 238);
             this.MinimizeBox = false;
+            this.MinimumSize = new System.Drawing.Size(635, 238);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "AnalysisEmotionalState";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Main_Closing);
             this.Load += new System.EventHandler(this.Main_Load);
             this.recognitionUnit.ResumeLayout(false);
             this.trainingUnit.ResumeLayout(false);
@@ -233,6 +275,10 @@
         private System.Windows.Forms.Button LoadDataset;
         private System.Windows.Forms.Button SaveNetwork;
         private System.Windows.Forms.Button LoadNetwork;
+        private System.Windows.Forms.Button CreateNetwork;
+        private System.Windows.Forms.ProgressBar ProgressBar;
+        private System.Windows.Forms.Timer TimerBar;
+        private System.Windows.Forms.Timer TimerButton;
     }
 }
 
